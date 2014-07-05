@@ -1,10 +1,16 @@
 #Scheme Compiler in Haskell(WIP)
 
 ###What?
-My implementation as I follow along the ["Write yourself a Scheme in 48 hours"](http://jonathan.tang.name/files/scheme_in_48/tutorial/overview.html). I shall try to follow proper guidelines for development with testing and documentation. The structure will like ly change a lot in the starting. 
+My implementation as I follow along the ["Write yourself a Scheme in 48 hours"](http://jonathan.tang.name/files/scheme_in_48/tutorial/overview.html). I shall try to follow proper guidelines for development with testing and documentation. The structure will likely change a lot in the starting. 
 
-###Run Instructions
+###Build Instructions
+This project uses the [official instructions](http://www.haskell.org/haskellwiki/How_to_write_a_Haskell_program) as much as possible.
+
+For now:
 ```
-ghc -o main hello.hs
-./main [args]
+cabal install -j
+.cabal-sandbox/bin/scheme-compiler [args]
 ```
+
+###License
+MIT
