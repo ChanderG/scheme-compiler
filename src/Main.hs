@@ -10,7 +10,7 @@ main = do {-
           -}
           
           --empty lines in between work 
-          putStrLn("Enter your name: ")
+          putStrLn "Enter your name: "
           name <- getLine
           putStrLn("Hello, " ++ name) 
  

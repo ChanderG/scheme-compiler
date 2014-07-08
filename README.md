@@ -11,6 +11,26 @@ For now:
 cabal install -j
 .cabal-sandbox/bin/scheme-compiler [args]
 ```
+For generating docs (Haddock):
+
+```
+cabal configure
+cabal haddock --executables
+```
+
+For linting source (Hlint):
+
+```
+cabal install hlint
+.cabal-sandbox/bin/hlint .
+```
+
+For unit testing (HUnit on Cabal):
+
+```
+cabal install --enable-tests
+cabal test --show-details=streaming
+```
 
 ###License
 MIT
