@@ -28,7 +28,7 @@ cabal install hlint
 For unit testing (HUnit on Cabal):
 
 ```
-cabal install --enable-tests
+cabal configure --enable-tests
 cabal test --show-details=streaming
 ```
 
