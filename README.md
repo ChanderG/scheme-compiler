@@ -7,10 +7,20 @@ My implementation as I follow along the ["Write yourself a Scheme in 48 hours"](
 This project uses the [official instructions](http://www.haskell.org/haskellwiki/How_to_write_a_Haskell_program) as much as possible.
 
 For now:
+
+This works when package parameters are required:
+
+```
+cabal build
+dist/build/scheme-compiler/scheme-compiler [args]
+```
+while this works only for simple cases:
+
 ```
 cabal install -j
 .cabal-sandbox/bin/scheme-compiler [args]
 ```
+
 For generating docs (Haddock):
 
 ```
