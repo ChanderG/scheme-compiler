@@ -1,7 +1,7 @@
 module Core where
 
 import Test.HUnit
---import Main
+import Compiler
 
 hi :: Int
 hi = 4*2
