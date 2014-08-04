@@ -42,5 +42,8 @@ cabal configure --enable-tests
 cabal test --show-details=streaming
 ```
 
+###On the scripts
+Three scripts build.sh, run.sh and test.sh are included. They are configured for my own use and *may not* work correctly in your machine.
+
 ###License
 MIT

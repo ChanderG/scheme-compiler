@@ -1,4 +1,7 @@
 *.hi
+
+*.swp
+
 *.o
 dist
 .cabal-sandbox
