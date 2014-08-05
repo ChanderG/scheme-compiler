@@ -14,7 +14,7 @@ This works when package parameters are required:
 cabal build
 dist/build/scheme-compiler/scheme-compiler [args]
 ```
-while this works only for simple cases:
+while this works only for simple cases. In fact here at this stage of the project it does *not* work at all and is misleading.
 
 ```
 cabal install -j
