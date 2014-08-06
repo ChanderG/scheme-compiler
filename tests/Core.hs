@@ -3,21 +3,22 @@ module Core where
 import Test.HUnit
 import Compiler
 
-
-
--- tests readExpr with ^
 test1 :: Test
 test1 = TestCase (assertEqual
-                   "To check if a simple symbol is parsed correctly"
-									 (readExpr "^")
+                   "Simple string"
+									 (readExpr "Haskell")
 									 "Found value")
 
--- tests readExpr with ^
 test2 :: Test
 test2 = TestCase (assertEqual
-                   "Symbol parser with space"
-									 (readExpr " ^")
+                   "Simple atom"
+									 (readExpr "_Haskell")
 									 "Found value")
 
+test3 :: Test
+test3 = TestCase (assertEqual
+                   "Simple number"
+									 (readExpr "1234")
+									 "Found value")
 
-tests = TestList [test1, test2] 
+tests = TestList [test1,test2,test3] 

@@ -2,6 +2,7 @@ module Compiler where
 
 import System.Environment 
 import Text.ParserCombinators.Parsec hiding (spaces) 
+import Control.Monad
 
 data LispVal = Atom String
              | List [LispVal]
@@ -31,9 +32,14 @@ parseAtom = do first <- letter <|> symbol
 spaces :: Parser ()
 spaces = skipMany1 space
 
+parseNumber :: Parser LispVal
+parseNumber = liftM (Number . read) $ many1 digit
+
+parseExpr :: Parser LispVal
+parseExpr = parseAtom <|> parseString <|> parseNumber 
+
 readExpr :: String -> String
---readExpr input = case parse (spaces >> symbol) "lisp" input of
-readExpr input = case parse symbol "lisp" input of
+readExpr input = case parse parseExpr  "lisp" input of
     Left err -> "No match: " ++ show err
     Right val -> "Found value"
 
