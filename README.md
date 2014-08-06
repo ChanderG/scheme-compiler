@@ -1,7 +1,9 @@
 #Scheme Compiler in Haskell(WIP)
 
 ###What?
-My implementation as I follow along the ["Write yourself a Scheme in 48 hours"](http://jonathan.tang.name/files/scheme_in_48/tutorial/overview.html). I shall try to follow proper guidelines for development with testing and documentation. The structure will likely change a lot in the starting. 
+My implementation as I follow along the ["Write yourself a Scheme in 48 hours"](http://jonathan.tang.name/files/scheme_in_48/tutorial/overview.html).The original website is now gone. Luckinly, a copy still remains ["here"](http://en.wikibooks.org/wiki/Write_Yourself_a_Scheme_in_48_Hours). 
+
+I shall try to follow proper guidelines for development with testing and documentation. The structure will likely change a lot in the starting. 
 
 ###Build Instructions
 This project uses the [official instructions](http://www.haskell.org/haskellwiki/How_to_write_a_Haskell_program) as much as possible.
@@ -49,6 +51,8 @@ cabal test --show-details=streaming
 
 ###On the scripts
 Three scripts build.sh, run.sh and test.sh are included. They are configured for my own use and *may not* work correctly in your machine.
+
+UPDATE: Sometimes the scripts are not working as they are supposed to. They will be scrapped soon.For now the run script is unsafe to use.
 
 ###License
 MIT
