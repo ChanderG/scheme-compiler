@@ -5,6 +5,8 @@ My implementation as I follow along the ["Write yourself a Scheme in 48 hours"](
 
 I shall try to follow proper guidelines for development with testing and documentation. The structure will likely change a lot in the starting. 
 
+Right now, on the first round I shall mainly stick to the given tutorial. The exercises will be implemented in a later iteration.
+
 ###Build Instructions
 This project uses the [official instructions](http://www.haskell.org/haskellwiki/How_to_write_a_Haskell_program) as much as possible.
 

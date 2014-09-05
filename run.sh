@@ -3,4 +3,4 @@
 # works when using install
 # .cabal-sandbox/bin/scheme-compiler $1
 
-dist/build/scheme-compiler/scheme-compiler $1 
+dist/build/scheme-compiler/scheme-compiler "$1" 

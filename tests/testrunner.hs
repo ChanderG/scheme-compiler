@@ -4,5 +4,5 @@ import Test.HUnit
 import Core as C
 
 main :: IO Counts 
-main = runTestTT C.tests
+main = runTestTT C.tests 
 
