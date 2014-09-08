@@ -60,19 +60,33 @@ parseExpr = parseAtom
 		   char ')'
 		   return x
 
+unwordsList :: [LispVal] -> String
+unwordsList = unwords . map showVal
+
+showVal :: LispVal -> String
+showVal (String contents) = "\"" ++ contents ++ "\""
+showVal (Atom name) = name
+showVal (Number contents) = show contents
+showVal (Bool True) = "#t"
+showVal (Bool False) = "#f"
+showVal (List contents) = "(" ++ unwordsList contents ++ ")"
+showVal (DottedList head tail) = "(" ++ unwordsList head ++ " . " ++ showVal tail ++ ")"
+
+instance Show LispVal where show = showVal
+
 --TODO: make the testExpr a function of this readExpr - if the next line is needed
 --if you update this do update testExpr function also
 readExpr :: String -> String
 readExpr input = case parse parseExpr  "lisp" input of
     Left err -> "No match: " ++ show err
-    Right val -> "Found value"
+    Right val -> "Found " ++ show val
 
 --special function to make it easy to unit test
 --just ensure that is is updated
 testExpr :: String -> String
 testExpr input = case parse parseExpr  "lisp" input of
     Left err -> "No match"
-    Right val -> "Found value"
+    Right val -> "Found " ++ show val
 
 
 --statements of do need to be aligned
