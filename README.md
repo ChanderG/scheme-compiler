@@ -54,11 +54,19 @@ cabal test --show-details=streaming
 ###On the scripts
 Three scripts build.sh, run.sh and test.sh are included. They are configured for my own use and *may not* work correctly in your machine.
 
+The test.sh runs the HUnit tests.
+
 UPDATE: Sometimes the scripts are not working as they are supposed to. They will be scrapped soon.For now the run script is unsafe to use.
 
 UPDATE to the UPDATE: The error has been corrected. The scripts should be safe now.
 
 Double quotes in the run script arguments needs to be escaped.
+
+The etest.sh is an external test runner. It runs all t$n.txt files from the etests folder and compares the results produced with the expected pre-calculatd results in res$n.txt.
+
+```
+./etest.sh
+```
 
 ###License
 MIT
