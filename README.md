@@ -58,5 +58,7 @@ UPDATE: Sometimes the scripts are not working as they are supposed to. They will
 
 UPDATE to the UPDATE: The error has been corrected. The scripts should be safe now.
 
+Double quotes in the run script arguments needs to be escaped.
+
 ###License
 MIT

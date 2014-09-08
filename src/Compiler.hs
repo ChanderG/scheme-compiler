@@ -74,12 +74,19 @@ showVal (DottedList head tail) = "(" ++ unwordsList head ++ " . " ++ showVal tai
 
 instance Show LispVal where show = showVal
 
+eval :: LispVal -> LispVal
+eval val@(String _) = val 
+eval val@(Number _) = val
+eval val@(Bool _) = val
+eval (List[Atom "quote", val]) = val
+
+
 --TODO: make the testExpr a function of this readExpr - if the next line is needed
 --if you update this do update testExpr function also
-readExpr :: String -> String
+readExpr :: String -> LispVal
 readExpr input = case parse parseExpr  "lisp" input of
-    Left err -> "No match: " ++ show err
-    Right val -> "Found " ++ show val
+    Left err -> String $ "No match: " ++ show err
+    Right val -> val
 
 --special function to make it easy to unit test
 --just ensure that is is updated
@@ -88,10 +95,13 @@ testExpr input = case parse parseExpr  "lisp" input of
     Left err -> "No match"
     Right val -> "Found " ++ show val
 
+main :: IO()
+main = getArgs >>= print . eval . readExpr . head 
+
 
 --statements of do need to be aligned
-main = do args <- getArgs
-          putStrLn(readExpr $ args !! 0)
+--main = do args <- getArgs
+         -- putStrLn(readExpr $ args !! 0)
           {-
           args <- getArgs
           argst <- getArgs  --any number of getArgs gets the same args passed in 
