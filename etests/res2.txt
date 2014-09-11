@@ -1,1 +1,1 @@
-#f
+Unrecogonized primitive function args: "+2"
