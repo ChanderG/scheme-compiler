@@ -60,7 +60,7 @@ executable scheme-compiler
   -- other-extensions:    
   
   -- Other library packages from which modules are imported.
-  build-depends:       base, parsec
+  build-depends:       base, parsec, mtl
   
   -- Directories containing source files.
   hs-source-dirs:      src 
@@ -74,7 +74,7 @@ test-suite scheme-compiler-tests
   -- other-modules:        main.hs 
   type:                 exitcode-stdio-1.0
 
-  build-depends:        base, HUnit, parsec
+  build-depends:        base, HUnit, parsec, mtl
   Ghc-Options:          -Wall
 
   default-language:     Haskell2010

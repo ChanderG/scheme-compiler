@@ -3,13 +3,16 @@ module Compiler where
 import System.Environment 
 import Text.ParserCombinators.Parsec hiding (spaces) 
 import Control.Monad
+import Control.Monad.Error
 
+--Data types and tokens handling
 data LispVal = Atom String
              | List [LispVal]
              | DottedList [LispVal] LispVal
              | Number Integer
              | String String
              | Bool Bool
+
 
 symbol :: Parser Char
 symbol = oneOf "!$%&|*+-/:<=>?@^_~"
@@ -107,10 +110,10 @@ unpackNum _ = 0
 
 --TODO: make the testExpr a function of this readExpr - if the next line is needed
 --if you update this do update testExpr function also
-readExpr :: String -> LispVal
+readExpr :: String -> ThrowsError LispVal
 readExpr input = case parse parseExpr  "lisp" input of
-    Left err -> String $ "No match: " ++ show err
-    Right val -> val
+    Left err -> throwError $ Parser err 
+    Right val -> return val
 
 --special function to make it easy to unit test
 --just ensure that is is updated
@@ -119,6 +122,39 @@ testExpr input = case parse parseExpr  "lisp" input of
     Left err -> "No match"
     Right val -> "Found " ++ show val
 
+--Error handling
+data LispError = NumArgs Integer [LispVal]
+              | TypeMismatch String LispVal
+              | Parser ParseError
+              | BadSpecialForm String LispVal
+              | NotFunction String String
+              | UnboundVar String String
+              | Default String
+
+showError :: LispError -> String
+showError (UnboundVar message varname) = message ++ ": " ++ varname
+showError (BadSpecialForm message form) = message ++ ": " ++ show form
+showError (NotFunction message func) = message ++ ": " ++ show func  --is this right?
+showError (NumArgs expected found) = "Expected " ++ show expected ++ " args;found values " ++ unwordsList found
+showError (TypeMismatch expected found) = "Invalid type: expected " ++ expected ++ " but found, " ++ show found 
+showError (Parser parseErr) = "Parse error at: " ++ show parseErr
+
+instance Show LispError where show = showError
+
+instance Error LispError where
+  noMsg = Default "An error has occured"
+  strMsg = Default
+
+--awesome use of partial application
+type ThrowsError = Either LispError
+
+trapError action = catchError action (return . show)
+
+--designed to work only with correct values
+extractValue :: ThrowsError a -> a
+extractValue (Right val) = val
+
+--Main
 main :: IO()
 main = getArgs >>= print . eval . readExpr . head 
 
