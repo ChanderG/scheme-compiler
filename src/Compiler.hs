@@ -97,12 +97,36 @@ primitives  = [("+", numericBinop(+)),
                ("/", numericBinop div),
                ("mod", numericBinop mod),
                ("quotient", numericBinop quot),
-               ("remainder", numericBinop rem)]
-
+               ("remainder", numericBinop rem),
+               ("=", numBoolBinop (==)),
+               ("<", numBoolBinop (<)),
+               (">", numBoolBinop (>)),
+               ("/=", numBoolBinop (/=)),
+               (">=", numBoolBinop (>=)),
+               ("<=", numBoolBinop (<=)),
+               ("&&", boolBoolBinop (&&)),
+               ("||", boolBoolBinop (||)),
+               ("string=?", strBoolBinop (==)),
+               ("string<?", strBoolBinop (<)),
+               ("string>?", strBoolBinop (>)),
+               ("string<=?", strBoolBinop (<=)),
+               ("string>=?", strBoolBinop (>=))]
+               
 numericBinop :: (Integer -> Integer -> Integer) -> [LispVal] ->ThrowsError LispVal
 numericBinop op [] = throwError $ NumArgs 2 [] 
 numericBinop op singleVal@[_] = throwError $ NumArgs 2 singleVal 
 numericBinop op params = mapM unpackNum params >>= return . Number . foldl1 op 
+
+boolBinop :: (LispVal -> ThrowsError a) -> (a -> a -> Bool) -> [LispVal] -> ThrowsError LispVal
+boolBinop unpacker op args = if length args /= 2
+                             then throwError $ NumArgs 2 args  
+                             else do left <- unpacker $ args !! 0
+                                     right <- unpacker $ args !! 1  
+				     return $ Bool $ left `op` right 
+
+numBoolBinop = boolBinop unpackNum
+boolBoolBinop = boolBinop unPackBool
+strBoolBinop = boolBinop unPackStr
 
 unpackNum :: LispVal -> ThrowsError Integer
 unpackNum (Number n) = return n
@@ -112,6 +136,17 @@ unpackNum (String n) = let parsed = reads n in
 			    else return $ fst $ parsed !! 0
 unpackNum (List [n]) = unpackNum n
 unpackNum notNum = throwError $ TypeMismatch "number" notNum
+
+unPackBool :: LispVal -> ThrowsError Bool
+unPackBool (Bool b) = return b
+unPackBool notBool = throwError $ TypeMismatch "boolean" notBool
+
+unPackStr :: LispVal -> ThrowsError String
+unPackStr (String s) = return s
+unPackStr (Number s) = return $ show s
+unPackStr (Bool s) = return $ show s
+unPackStr notString = throwError $ TypeMismatch "string" notString
+
 
 --TODO: make the testExpr a function of this readExpr - if the next line is needed
 --if you update this do update testExpr function also
