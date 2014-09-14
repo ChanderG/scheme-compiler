@@ -90,6 +90,40 @@ eval (List [Atom "if", pred, conseq, alt]) =
 eval (List (Atom func : args)) = mapM eval args >>= apply func
 eval badForm = throwError $ BadSpecialForm "Unrecogonized special form" badForm
 
+car :: [LispVal] -> ThrowsError LispVal
+car [List (x:xs)] = return x
+car [DottedList (x:xs) _] = return x
+car [badArg] = throwError $ TypeMismatch "pair" badArg 
+car badArgsList = throwError $ NumArgs 1 badArgsList
+
+cdr :: [LispVal] -> ThrowsError LispVal
+cdr [List (x:xs)] = return $ List x
+cdr [DottedList [_] x] = return x
+cdr [DottedList (_:xs) x] = return $ DottedList xs x 
+cdr [badArg] = throwError $ TypeMismatch "pair" badArg 
+cdr badArgsList = throwError $ NumArgs 1 badArgsList
+
+cons :: [LispVal] -> ThrowsError LispVal
+cons [x, List []] = return $ List [x]  
+cons [x, List xs] = return $ List $ x:xs
+cons [x, DottedList xs xlast] = return $ DottedList (x:xs) xlast
+cons [x1, x2] = return DottedList [x1] x2
+cons badArgsList = throwError $ NumArgs 2 badArgsList
+
+eqv :: [LispVal] -> ThrowsError LispVal
+eqv [(Bool arg1), (Bool arg2)] = return $ Bool $ arg1 == arg2 
+eqv [(String arg1),(String arg2)] = return $ Bool $ arg1 == arg2 
+eqv [(Atom arg1),(Atom arg2)] = return $ Bool $ arg1 == arg2 
+eqv [(DottedList xs x), (DottedList ys y)] = eqv [List $ xs ++ [x], List $ ys ++ [y]]
+eqv [(List arg1), (List arg2)] = return $ Bool (length arg1 == length arg2) $$ (all eqvPair $ zip arg1 arg2)
+    where eqvPair (x1, x2) = case eqv [x1, x2] in 
+                              Left err -> False
+			      Right (Bool val) -> val 
+eqv [_, _] = return $ Bool False
+eqv badArgsList = throwError $ NumArgs 2 badArgsList
+
+
+
 apply :: String -> [LispVal] -> ThrowsError LispVal
 apply func args = maybe (throwError $ NotFunction "Unrecogonized primitive function args" func) 
                         ($ args) 
