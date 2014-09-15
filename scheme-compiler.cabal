@@ -61,7 +61,9 @@ executable scheme-compiler
   
   -- Other library packages from which modules are imported.
   build-depends:       base, parsec, mtl
-  
+ 
+  default-extensions: ExistentialQuantification
+
   -- Directories containing source files.
   hs-source-dirs:      src 
   
@@ -75,6 +77,7 @@ test-suite scheme-compiler-tests
   type:                 exitcode-stdio-1.0
 
   build-depends:        base, HUnit, parsec, mtl
-  Ghc-Options:          -Wall
+  Ghc-Options:          -Wall 
+  default-extensions: ExistentialQuantification
 
   default-language:     Haskell2010
