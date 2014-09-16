@@ -62,11 +62,15 @@ UPDATE to the UPDATE: The error has been corrected. The scripts should be safe n
 
 Double quotes in the run script arguments needs to be escaped.
 
+###External tester
+
 The etest.sh is an external test runner. It runs all t$n.txt files from the etests folder and compares the results produced with the expected pre-calculatd results in res$n.txt.
 
 ```
 ./etest.sh
 ```
+
+This does not test the REPL as of now.
 
 ###License
 MIT
