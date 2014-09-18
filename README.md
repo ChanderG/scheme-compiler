@@ -7,6 +7,9 @@ I shall try to follow proper guidelines for development with testing and documen
 
 Right now, on the first round I shall mainly stick to the given tutorial. The exercises will be implemented in a later iteration.
 
+**UPDATE: The testing etc has been done properly till before the REPL. I cannot say that I understand everything after this point.Hence I am blindly sticking to the writing as of now.**
+
+
 ###Build Instructions
 This project uses the [official instructions](http://www.haskell.org/haskellwiki/How_to_write_a_Haskell_program) as much as possible.
 
