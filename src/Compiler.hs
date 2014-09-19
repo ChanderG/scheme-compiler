@@ -30,6 +30,30 @@ getVar envref var = do env <- liftIO $ readIORef envRef
 		            (liftIO readIORef)
 			    (lookup var env)
 
+setVar :: Env -> String -> LispVal -> IOThrowsError LispVal
+setVar envref var value = do env <- liftIO $ readIORef envRef
+                             maybe (throwError $ unboundVar "Setting an unbound variable" var)
+			     (liftIO . (flip writeIORef value))
+			     (lookup var env)
+
+defineVar :: Env -> String -> LispVal -> IOThrowsError LispVal
+defineVar envRef var value = do
+                               alreadyDefined <- liftIO $ isBound envRef var 
+                               if alreadyDefined
+			         then setVar envRef var value >> return value
+				 else liftIO $ do
+				      valueRef <- newIORef value
+				      env <- readIORef envRef
+				      writeIORef envRef ((var, valueRef) : env)
+				      return value
+
+bindVars :: Env -> [(String, LispVal)] -> IO Env
+bindVars envRef bindings = readIORef envRef >>= extendEnv bindings >>= newIORef
+                           where extendEnv bindings env = liftM ( ++ env) (mapM addBinding bindings)
+			   addBinding (var, value) = do ref <- newIORef value
+			                               return (var, ref)  
+			     
+
 --Data types and tokens handling
 data LispVal = Atom String
              | List [LispVal]
