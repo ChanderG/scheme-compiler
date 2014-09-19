@@ -25,16 +25,17 @@ isBound :: Env -> String -> IO Bool
 isBound envRef var = readIORef envRef >>= return . maybe False (const True) . lookup var
 
 getVar :: Env -> String -> IOThrowsError LispVal
-getVar envref var = do env <- liftIO $ readIORef envRef
-                      maybe (throwError $ UnboundVar "Getting an unbound variable" var)
-		            (liftIO readIORef)
-			    (lookup var env)
+getVar envRef var = do env <- liftIO $ readIORef envRef
+                       maybe (throwError $ UnboundVar "Getting an unbound variable" var)
+		             (liftIO . readIORef)
+			     (lookup var env)
 
 setVar :: Env -> String -> LispVal -> IOThrowsError LispVal
-setVar envref var value = do env <- liftIO $ readIORef envRef
-                             maybe (throwError $ unboundVar "Setting an unbound variable" var)
-			     (liftIO . (flip writeIORef value))
-			     (lookup var env)
+setVar envRef var value = do env <- liftIO $ readIORef envRef
+                             maybe (throwError $ UnboundVar "Setting an unbound variable" var)
+			       (liftIO . (flip writeIORef value))
+			       (lookup var env)
+			     return value  
 
 defineVar :: Env -> String -> LispVal -> IOThrowsError LispVal
 defineVar envRef var value = do
@@ -50,8 +51,8 @@ defineVar envRef var value = do
 bindVars :: Env -> [(String, LispVal)] -> IO Env
 bindVars envRef bindings = readIORef envRef >>= extendEnv bindings >>= newIORef
                            where extendEnv bindings env = liftM ( ++ env) (mapM addBinding bindings)
-			   addBinding (var, value) = do ref <- newIORef value
-			                               return (var, ref)  
+			         addBinding (var, value) = do ref <- newIORef value
+			                                      return (var, ref)  
 			     
 
 --Data types and tokens handling
@@ -125,7 +126,6 @@ showVal (List contents) = "(" ++ unwordsList contents ++ ")"
 showVal (DottedList head tail) = "(" ++ unwordsList head ++ " . " ++ showVal tail ++ ")"
 
 instance Show LispVal where show = showVal
-
 
 eval :: Env -> LispVal -> IOThrowsError LispVal
 eval env val@(String _) = return val
@@ -321,11 +321,11 @@ flushStr str = putStr str >> hFlush stdout
 readPrompt :: String -> IO String
 readPrompt prompt = flushStr prompt >> getLine
 
-evalString :: String -> IO String
-evalString expr = return $ extractValue $ trapError (liftM show $ readExpr expr >>= eval) 
+evalString :: Env -> String -> IO String
+evalString env expr = runIOThrows $ liftM show $ (liftThrows $ readExpr expr) >>= eval env
 
-evalAndPrint :: String -> IO ()
-evalAndPrint expr = evalString expr >>= putStrLn
+evalAndPrint :: Env -> String -> IO ()
+evalAndPrint env expr = evalString env expr >>= putStrLn
 
 --first monadic function
 until_ :: Monad m => (a -> Bool) -> m a -> (a -> m ()) -> m ()
@@ -335,16 +335,19 @@ until_ pred prompt action = do
 			      then return ()
 			      else action result >> until_ pred prompt action
 
+runOne :: String -> IO ()
+runOne expr = nullEnv >>= flip evalAndPrint expr
+
 --awesome composition
 runRepl :: IO ()
-runRepl = until_ (== "quit") (readPrompt "Lisp>>> ") evalAndPrint
+runRepl = nullEnv >>= until_ (== "quit") (readPrompt "Lisp>>> ") .  evalAndPrint
 
 main :: IO ()
 main = do
          args <- getArgs
 	 case length args of
 	   0 -> runRepl
-	   1 -> evalAndPrint $ args !! 0
+	   1 -> runOne $ args !! 0
 	   otherwise -> putStrLn "Program takes only 0 or 1 arguments."
 
 {-

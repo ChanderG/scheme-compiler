@@ -5,7 +5,7 @@
 
 #dist/build/scheme-compiler/scheme-compiler "$1" 
 
-read input
-dist/build/scheme-compiler/scheme-compiler "$input"
+#read input
+#dist/build/scheme-compiler/scheme-compiler "$input"
 
-
+./dist/build/scheme-compiler/scheme-compiler
