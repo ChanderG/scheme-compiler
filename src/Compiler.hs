@@ -62,6 +62,8 @@ data LispVal = Atom String
              | Number Integer
              | String String
              | Bool Bool
+	     | PrimitiveFunc ([LispVal] -> ThrowsError LispVal)
+	     | Func {params :: [String], vararg :: (Maybe String), body :: [LispVal], closure :: Env}
 
 
 symbol :: Parser Char
@@ -124,6 +126,11 @@ showVal (Bool True) = "#t"
 showVal (Bool False) = "#f"
 showVal (List contents) = "(" ++ unwordsList contents ++ ")"
 showVal (DottedList head tail) = "(" ++ unwordsList head ++ " . " ++ showVal tail ++ ")"
+showVal (PrimitiveFunc _) = "<primitive>"
+showVal (Func {params = args, vararg = varargs, body = body, closure = env}) = "lambda( " ++ unwords (map show args) ++ 
+  (case varargs of
+    Nothing -> ""
+    Just arg -> " . " ++ arg) ++ ") ... )" 
 
 instance Show LispVal where show = showVal
 
@@ -194,12 +201,19 @@ equal [arg1, arg2] = do
 		     return $ Bool $ (primitiveEquals || let (Bool x) = eqvEquals in x)
 equal badArgsList = throwError $ NumArgs 2 badArgsList
 
-
-apply :: String -> [LispVal] -> ThrowsError LispVal
-apply func args = maybe (throwError $ NotFunction "Unrecogonized primitive function args" func) 
-                        ($ args) 
-			(lookup func primitives)
-
+apply :: LispVal -> [LispVal] -> IOThrowsError LispVal
+apply (PrimitiveFunc func) args = liftThrows $ func args
+apply (Func params varargs body closure) args = 
+                  if num params /= num args && varargs == Nothing
+                    then throwError $ NumArgs (num params) args
+		    else (liftIO $ bindVars closure $ zip params args) >>= bindVarArgs varargs >>= evalBody 
+		  where remainingArgs = drop (length params) args
+		        num = toInteger . length
+			evalBody env = liftM last $ mapM (eval env) body
+                        bindVarArgs arg env = case arg of
+			            Just argName -> liftIO $ bindVars env [(argName, List $ remainingArgs)] 
+				    Nothing -> return env 
+		    
 primitives :: [(String, [LispVal] -> ThrowsError LispVal)]
 primitives  = [("+", numericBinop(+)),
                ("-", numericBinop(-)),
