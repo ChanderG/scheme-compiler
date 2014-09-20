@@ -55,6 +55,15 @@ bindVars envRef bindings = readIORef envRef >>= extendEnv bindings >>= newIORef
 			                                      return (var, ref)  
 			     
 
+primitiveBindings :: IO Env
+primitiveBindings = nullEnv >>= (flip bindVars $ map makePrimitiveFunc primitives) 
+                    where makePrimitiveFunc (var, func) = (var, PrimitiveFunc func)
+
+--examples of design of simplification of code
+makeFunc varargs env params body = return $ Func (map showVal params) varargs body env
+makeNormalFunc = makeFunc Nothing
+makeVarargs = makeFunc . Just . showVal
+
 --Data types and tokens handling
 data LispVal = Atom String
              | List [LispVal]
@@ -147,8 +156,22 @@ eval env (List [Atom "if", pred, conseq, alt]) =
 	    otherwise -> eval env conseq
 eval env (List [Atom "set!", Atom var, form]) = eval env form >>= setVar env var 
 eval env (List [Atom "define", Atom var, form]) = eval env form >>= defineVar env var 
-eval env (List (Atom func : args)) = mapM (eval env) args >>= liftThrows . apply func
+eval env (List (Atom "define" : List (Atom var : params) : body)) = 
+                makeNormalFunc env params body >>= defineVar env var 
+eval env (List (Atom "define" : DottedList (Atom var : params) varargs: body)) = 
+                makeVarargs varargs env params body >>= defineVar env var 
+eval env (List (Atom "lambda" : List params : body)) = 
+                makeNormalFunc env params body 
+eval env (List (Atom "lambda" : DottedList params varargs: body)) = 
+                makeVarargs varargs env params body 
+eval env (List (Atom "lambda" : varargs@(Atom _) : body)) = 
+                makeVarargs varargs env [] body 
+eval env (List (function : args)) = do
+                                      func <- eval env function
+                                      argVals <- mapM (eval env) args
+				      apply func argVals
 eval env badForm = throwError $ BadSpecialForm "Unrecogonized special form" badForm
+--eval env (List (Atom func : args)) = mapM (eval env) args >>= liftThrows . apply func
 
 
 car :: [LispVal] -> ThrowsError LispVal
@@ -350,11 +373,11 @@ until_ pred prompt action = do
 			      else action result >> until_ pred prompt action
 
 runOne :: String -> IO ()
-runOne expr = nullEnv >>= flip evalAndPrint expr
+runOne expr = primitiveBindings >>= flip evalAndPrint expr
 
 --awesome composition
 runRepl :: IO ()
-runRepl = nullEnv >>= until_ (== "quit") (readPrompt "Lisp>>> ") .  evalAndPrint
+runRepl = primitiveBindings >>= until_ (== "quit") (readPrompt "Lisp>>> ") .  evalAndPrint
 
 main :: IO ()
 main = do
