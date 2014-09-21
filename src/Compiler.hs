@@ -56,8 +56,9 @@ bindVars envRef bindings = readIORef envRef >>= extendEnv bindings >>= newIORef
 			     
 
 primitiveBindings :: IO Env
-primitiveBindings = nullEnv >>= (flip bindVars $ map makePrimitiveFunc primitives) 
-                    where makePrimitiveFunc (var, func) = (var, PrimitiveFunc func)
+primitiveBindings = nullEnv >>= (flip bindVars $ map (makeFunc IOFunc) ioPrimitives 
+                                   ++ map (makeFunc PrimitiveFunc) primitives) 
+                    where makeFunc constructor (var, func) = (var, constructor func)
 
 --examples of design of simplification of code
 makeFunc varargs env params body = return $ Func (map showVal params) varargs body env
@@ -73,6 +74,8 @@ data LispVal = Atom String
              | Bool Bool
 	     | PrimitiveFunc ([LispVal] -> ThrowsError LispVal)
 	     | Func {params :: [String], vararg :: (Maybe String), body :: [LispVal], closure :: Env}
+	     | IOFunc ([LispVal] -> IOThrowsError LispVal)
+	     | Port Handle
 
 
 symbol :: Parser Char
@@ -106,6 +109,7 @@ parseDottedList :: Parser LispVal
 parseDottedList = do
     head <- endBy parseExpr spaces
     tail <- char '.' >> spaces >> parseExpr
+
     return $ DottedList head tail
 
 parseQuoted :: Parser LispVal
@@ -140,6 +144,8 @@ showVal (Func {params = args, vararg = varargs, body = body, closure = env}) = "
   (case varargs of
     Nothing -> ""
     Just arg -> " . " ++ arg) ++ ") ... )" 
+showVal (IOFunc _) = "<IO primitive>"    
+showVal (Port _) = "<IO port>"
 
 instance Show LispVal where show = showVal
 
@@ -265,6 +271,18 @@ primitives  = [("+", numericBinop(+)),
 	       ("eqv?", eqv),
 	       ("equal?", equal)]
                
+ioPrimitives :: [(String, [LispVal] -> IOThrowsError LispVal)]
+ioPrimitives = [("apply", applyProc),
+                ("open-input-file", makePort ReadMode),
+                ("open-output-file", makePort WriteMode),
+                ("close-input-port", makePort ),
+                ("close-output-port", makePort ),
+		("read", readProc),
+		("write", writeProc),
+		("read-contents", readContents),
+		("read-all", readAll)]
+
+
 numericBinop :: (Integer -> Integer -> Integer) -> [LispVal] ->ThrowsError LispVal
 numericBinop op [] = throwError $ NumArgs 2 [] 
 numericBinop op singleVal@[_] = throwError $ NumArgs 2 singleVal 
@@ -303,11 +321,13 @@ unPackStr notString = throwError $ TypeMismatch "string" notString
 
 --TODO: make the testExpr a function of this readExpr - if the next line is needed
 --if you update this do update testExpr function also
-readExpr :: String -> ThrowsError LispVal
-readExpr input = case parse parseExpr  "lisp" input of
-    Left err -> throwError $ Parser err 
-    Right val -> return val
+readOrThrow :: Parser a -> String -> ThrowsError a
+readOrThrow parser input = case parse parser "lisp" input of
+     Left err -> throwError $ Parser err
+     Right val -> return val
 
+readExpr = readOrThrow parseExpr
+readExprList = readOrThrow (endBy parseExpr spaces)
 --special function to make it easy to unit test
 --just ensure that is is updated
 testExpr :: String -> String
